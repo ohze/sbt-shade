@@ -3,7 +3,7 @@ lazy val sbtShade = (project in file("."))
   .settings(
     organization := "com.sandinh",
     name := "sbt-shade",
-    version := "0.1.0-SNAPSHOT",
+    version := "0.1.0",
     description := "Resource transformers for sbt-assembly plugin",
     organizationName := "Sân Đình",
     organizationHomepage := Some(url("http://sandinh.com")),
