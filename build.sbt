@@ -22,5 +22,6 @@ lazy val sbtShade = (project in file("."))
     // Need publish (even if empty) javadoc as required by sonatype
     // https://github.com/xerial/sbt-sonatype/issues/30#issuecomment-215273906
     Compile / packageDoc / publishArtifact := true,
-    Test / packageBin / publishArtifact := false
+    Test / packageBin / publishArtifact := false,
+    Test / packageDoc / publishArtifact := false
   )
