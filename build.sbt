@@ -5,6 +5,8 @@ lazy val sbtShade = (project in file("."))
     name := "sbt-shade",
     version := "0.1.0-SNAPSHOT",
     description := "Resource transformers for sbt-assembly plugin",
+    organizationName := "Sân Đình",
+    organizationHomepage := Some(url("http://sandinh.com")),
     licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
     scalacOptions := Seq("-deprecation", "-Xfuture"),
     addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.10"),
