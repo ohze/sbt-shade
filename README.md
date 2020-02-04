@@ -1,17 +1,25 @@
-# sbt-shade
 [![Build Status](https://travis-ci.org/ohze/sbt-shade.svg?branch=master)](https://travis-ci.org/ohze/sbt-shade)
+# sbt-shade
 Resource transformers for sbt-assembly plugin
 
 ## usage
 
-+ `project/plugins.sbt`
+#### Install
+Add to `project/plugins.sbt`
 ```sbt
 addSbtPlugin("com.eed3si9n" % "sbt-assembly"  % "0.14.10")
 addSbtPlugin("com.sandinh"  % "sbt-shade"     % "0.1.0")
 ```
 
-+ `build.sbt`
-
+#### Shade
+For example, to shade the following dependencies:
+```sbt
+netty-tcnative-boringssl-static
+jackson-core
+jackson-databind
+jackson-module-afterburner
+```
+you need add to `build.sbt`
 ```sbt
 import sbtassembly.shadeplugin.ResourceTransformer.{Rename, Discard}
 
@@ -42,5 +50,53 @@ val myAssemblySettings = inTask(assembly)(
       ).inDir("META-INF/services")
     )
   )  
+)
+
+val otherSettings = ...
+
+lazy val `core-io` = project
+  .settings(myAssemblySettings ++ otherSettings: _*)
+```
+*Note the use of* `shadeResourceTransformers ++= Seq(Rename(..), Discard(..)`
+
+#### Include the shaded dependencies into your library for publishing
+For example, `com.couchbase.client:core-io` lib want to shade the libraries above into `core-io-<version>.jar`
+But keep other libs as normal dependencies (not shade):
+
+```sbt
+val coreIoDeps = DependencyTransformer(
+  shadedDeps = Seq(netty, jackson ...),
+  notShadedDeps = Seq(
+    "io.projectreactor" % "reactor-core" % V.reactor
+    "org.slf4j"         % "slf4j-api"    % V.slf4j % Optional
+  )
+)
+lazy val `core-io` = project
+  .settings(myAssemblySettings ++ coreIoDeps.settings ++ otherSettings: _*)
+  .settings(
+    addArtifact(artifact in (Compile, assembly), assembly),
+  )
+```
+*Note the use of* `coreIoDeps.settings` which is defined in [DependencyTransformer.scala](src/main/scala/sbtassembly/shadeplugin/DependencyTransformer.scala)
+```scala
+  def settings = Seq(
+    // normally add `shadedDeps` to libraryDependencies
+    // but map runtime-like deps in `notShadedDeps` to "provided" scope so that sbt-assembly will not shade those deps
+    // see https://github.com/sbt/sbt-assembly#excluding-jars-and-files
+    // (runtime-like deps are the dep with no scope or in scopes: Compile, Runtime, Optional, Default)
+    libraryDependencies ++= shadedDeps ++ notShadedDepsToProvided,
+    // post process the pom <dependencies> xml node for publishing
+    // shadedDeps are removed
+    // notShadedDeps are change back to the desired scopes
+    pomPostProcess := changePomDependencies
+  )
+```
+
+##### Note for java only projects
+Add the following settings:
+```sbt
+project.settings(
+  autoScalaLibrary := false, // exclude scala-library from dependencies
+  crossPaths := false        // drop off Scala suffix from artifact names and publish path
 )
 ```
