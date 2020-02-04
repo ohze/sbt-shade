@@ -1,4 +1,5 @@
 # sbt-shade
+[![Build Status](https://travis-ci.org/ohze/sbt-shade.svg?branch=master)](https://travis-ci.org/ohze/sbt-shade)
 Resource transformers for sbt-assembly plugin
 
 ## usage
