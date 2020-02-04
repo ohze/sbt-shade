@@ -15,5 +15,9 @@ lazy val sbtShade = (project in file("."))
         case "2.10" => "0.13.18"
         case "2.12" => "1.3.7"
       }
-    }
+    },
+    Compile / doc / sources := Nil,
+    Compile / packageDoc / publishArtifact := false,
+    publishArtifact in (Compile, packageDoc) := false,
+    publishArtifact in (Test, packageBin) := false
   )
