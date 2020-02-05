@@ -100,3 +100,14 @@ project.settings(
   crossPaths := false        // drop off Scala suffix from artifact names and publish path
 )
 ```
+
+## dev guide
++ clone
++ using IntelliJ
++ Set IntelliJ using scalafmt code formater
++ sbt
+```sbt
++scripted
+```
++ publish:
+https://www.scala-sbt.org/1.x/docs/Bintray-For-Plugins.html

@@ -3,7 +3,7 @@ lazy val sbtShade = (project in file("."))
   .settings(
     organization := "com.sandinh",
     name := "sbt-shade",
-    version := "0.1.0",
+    version := "0.1.1",
     scalacOptions := Seq("-deprecation", "-Xfuture"),
     addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.10"),
     crossScalaVersions := Seq("2.12.10", "2.10.7"),
@@ -15,28 +15,25 @@ lazy val sbtShade = (project in file("."))
       }
     },
     Compile / doc / sources := Nil,
-    // Need publish (even if empty) javadoc as required by sonatype
-    // https://github.com/xerial/sbt-sonatype/issues/30#issuecomment-215273906
-    Compile / packageDoc / publishArtifact := true,
     Test / publishArtifact := false
   )
-  .settings(
-    bintraySettings ++ otherSettings: _*
-  )
+  .settings(infoSettings: _*)
 
-val bintraySettings = Seq(
+val publishInfoSettings = Seq(
   publishMavenStyle := false,
-  bintrayOrganization := Some("ohze"),
-  bintrayRepository := "sbt-plugins"
+  bintrayRepository := "sbt-plugins",
+  bintrayOrganization in bintray := None
 )
 
-val otherSettings = Seq(
+val sandinh = url("https://sandinh.com")
+
+val infoSettings = Seq(
   description := "Resource transformers for sbt-assembly plugin",
   organizationName := "Sân Đình",
-  organizationHomepage := Some(url("https://sandinh.com")),
+  organizationHomepage := Some(sandinh),
   licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
   developers := List(
-    Developer("ohze", "Bùi Việt Thành", "thanhbv@sandinh.net", url("https://sandinh.com"))
+    Developer("ohze", "Bùi Việt Thành", "thanhbv@sandinh.net", sandinh)
   ),
   scmInfo := Some(
     ScmInfo(
