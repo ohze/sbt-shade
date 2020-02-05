@@ -22,7 +22,14 @@ lazy val sbtShade = (project in file("."))
 val publishInfoSettings = Seq(
   publishMavenStyle := false,
   bintrayRepository := "sbt-plugins",
-  bintrayOrganization in bintray := None
+  bintrayOrganization in bintray := None,
+  bintrayPackageLabels := Seq(
+    "sbt",
+    "sbt-assembly",
+    "sbt-shade",
+    "maven-shade-plugin",
+    "dependencies"
+  )
 )
 
 val sandinh = url("https://sandinh.com")
