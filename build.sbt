@@ -3,7 +3,7 @@ lazy val sbtShade = (project in file("."))
   .settings(
     organization := "com.sandinh",
     name := "sbt-shade",
-    version := "0.1.1",
+    version := "0.1.2-SNAPSHOT",
     scalacOptions := Seq("-deprecation", "-Xfuture"),
     addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.10"),
     crossScalaVersions := Seq("2.12.10", "2.10.7"),

@@ -64,33 +64,70 @@ For example, `com.couchbase.client:core-io` lib want to shade the libraries abov
 But keep other libs as normal dependencies (not shade):
 
 ```sbt
-val coreIoDeps = DependencyTransformer(
-  shadedDeps = Seq(netty, jackson ...),
-  notShadedDeps = Seq(
-    "io.projectreactor" % "reactor-core" % V.reactor
-    "org.slf4j"         % "slf4j-api"    % V.slf4j % Optional
+import sbtassembly.shadeplugin.ShadePluginUtils._
+
+lazy val `core-io-deps` = project
+  .settings(
+      libraryDependencies := coreIoShadedDeps,
+      publish / skip := true,
+      // https://www.scala-sbt.org/1.x/docs/Howto-Classpaths.html#Use+packaged+jars+on+classpaths+instead+of+class+directories
+      // exportJars so in dependent projects, we can compute assemblyExcludedJars based on this Project / artifactPath
+      exportJars := true
+    )
+
+val coreIoAssemblySettings = commonAssemblySettings ++ inTask(assembly)(
+  Seq(
+    // shade only core-io-deps and selfJar (core-io)
+    assemblyExcludedJars := {
+      val cp           = fullClasspath.value
+      val depJar       = (`core-io-deps` / assembly / assemblyOutputPath).value
+      val selfJar      = (Compile / packageBin / artifactPath).value
+      val includedJars = Set(depJar, selfJar)
+      cp.filterNot { entry =>
+        includedJars contains entry.data
+      }
+    }
   )
 )
+
 lazy val `core-io` = project
-  .settings(myAssemblySettings ++ coreIoDeps.settings ++ otherSettings: _*)
+  .settings(coreIoAssemblySettings: _*)
+  .enableAssemblyPublish()
   .settings(
-    addArtifact(artifact in (Compile, assembly), assembly),
+    libraryDependencies ++= coreIoDeps,
+    exportJars := true,
+    Compile / unmanagedJars += {
+      (`core-io-deps` / assembly).value
+      (`core-io-deps` / assembly / assemblyOutputPath).value
+    }
   )
-```
-*Note the use of* `coreIoDeps.settings` which is defined in [DependencyTransformer.scala](src/main/scala/sbtassembly/shadeplugin/DependencyTransformer.scala)
-```scala
-  def settings = Seq(
-    // normally add `shadedDeps` to libraryDependencies
-    // but map runtime-like deps in `notShadedDeps` to "provided" scope so that sbt-assembly will not shade those deps
-    // see https://github.com/sbt/sbt-assembly#excluding-jars-and-files
-    // (runtime-like deps are the dep with no scope or in scopes: Compile, Runtime, Optional, Default)
-    libraryDependencies ++= shadedDeps ++ notShadedDepsToProvided,
-    // post process the pom <dependencies> xml node for publishing
-    // shadedDeps are removed
-    // notShadedDeps are change back to the desired scopes
-    pomPostProcess := changePomDependencies
+
+lazy val `scala-implicits` = project
+  .disablePlugins(AssemblyPlugin)
+  .settings(
+    libraryDependencies ++= scalaImplicitsDeps,
+    exportJars := true,
+    publish / skip := true
   )
+  .dependsOn(`core-io`)
+
+val scalaClientAssemblySettings = commonAssemblySettings ++ inTask(assembly)(
+  Seq(
+    // shade scala-java8-compat, scala-implicits and selfJar (scala-client)
+    assemblyExcludedJars := ...
+  )
+)
+
+lazy val `scala-client` = project
+  .settings(scalaModuleSettings ++ scalaClientAssemblySettings: _*)
+  .enableAssemblyPublish()
+  .settings(
+    libraryDependencies ++= scalaClientDeps
+  )
+  .dependsOn(`core-io`, `scala-implicits`)
+  .removePomDependsOn(`scala-implicits`)
 ```
+*Note the use of* `enableAssemblyPublish` and `removePomDependsOn` which is defined in [ShadePluginUtils.ShadeProjectOps](src/main/scala/sbtassembly/shadeplugin/ShadePluginUtils.scala)
 
 ##### Note for java only projects
 Add the following settings:

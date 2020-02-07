@@ -18,8 +18,9 @@ abstract class ResourceTransformer extends MergeStrategy {
   /** A MappingSet from an empty path File to `resourcePaths`.
     * This mappingSet will be add to assembly / assembledMappings
     * so when assemblyPlugin processing file that match resourcePaths => duplication => trigger MergeStrategy
-    * @note we need this because a limit in sbt-assembly that don't provide a way to hook a logic
+    * @note we need this because a limit (for now :D) in sbt-assembly that don't provide a way to hook a logic
     * when processing a resource with no conflict occurred */
+  // TODO ?should use AssemblyOption.excludedFiles
   def mappingSet: MappingSet = MappingSet(
     None,
     resourcePaths.map(new File("") -> _)

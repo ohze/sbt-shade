@@ -5,6 +5,7 @@ import sbt._
 
 import scala.xml.Elem
 
+@deprecated("Use ShadePluginUtils.ShadeProjectOps instead", "0.1.2")
 object DependencyTransformer {
 
   /** represent a dependency Node
@@ -62,6 +63,7 @@ object DependencyTransformer {
   }
 }
 
+@deprecated("Use ShadePluginUtils.ShadeProjectOps instead", "0.1.2")
 case class DependencyTransformer(
     shadedDeps: Seq[ModuleID],
     notShadedDeps: Seq[ModuleID]
