@@ -53,9 +53,44 @@ object ShadePluginUtils {
       pomPostProcess := {
         val groupId    = (organization in d).value
         val artifactId = (name in d).value + (artifactIdSuffix in d).value
-        removeDependencyFromPom(artifactNodeMatcher(groupId, artifactId))
+        removeDependencyFromPom(artifactNodeMatcher(groupId -> artifactId))
       }
     )
+
+    /** Set pomPostProcess for this `p` project to remove `rules` as dependency xml nodes in pom.xml when publishing
+      * usage example: {{{
+      *   val zio = "dev.zio" %% "zio" % "1.0.0-RC17"
+      *   val otherDep = ..
+      *   val p = project
+      *     .settings(
+      *        libraryDependencies += zio,
+      *        .. shade zio, otherDep
+      *     )
+      *     .removePomDependsOn(zio, otherDep)
+      * }}} */
+    def removePomDependsOn(moduleIDs: ModuleID*): Project = p.settings(
+      pomPostProcess := removeDependencyFromPom(
+        ScalaVersion(scalaVersion.value, scalaBinaryVersion.value),
+        moduleIDs: _*
+      )
+    )
+
+    private def removeDependencyFromPom(
+        sv: ScalaVersion,
+        moduleIDs: ModuleID*
+    ): xml.Node => xml.Node = {
+      val matcherRules = moduleIDs.map { m =>
+        val groupId = m.organization
+        val cross   = CrossVersion(m.crossVersion, sv.full, sv.binary)
+        val artifactId = cross match {
+          case None    => m.name
+          case Some(f) => f(m.name)
+        }
+        groupId -> artifactId
+      }
+
+      removeDependencyFromPom(artifactNodeMatcher(matcherRules: _*))
+    }
 
     /** Remove {{{<dependency>}}} nodes from {{{<dependencies>}}} node in pom.xml
       * @param depNodeMatcher if depNodeMatcher(dependency node) == true then the dependency node will be removed */
@@ -70,14 +105,18 @@ object ShadePluginUtils {
 
     /** check if a Node is {{{
       * <dependency>
-      *   <groupId>{text == groupId param}</groupId>
-      *   <artifactId>{text == artifactId param}</artifactId>
+      *   <groupId>{text == groupId in rules}</groupId>
+      *   <artifactId>{text == artifactId in rules}</artifactId>
       *   ...
-      * }}}*/
-    private def artifactNodeMatcher(groupId: String, artifactId: String): xml.Node => Boolean = {
+      * }}}
+      * @param rules seq of groupId -> artifactId to match
+      * */
+    private def artifactNodeMatcher(rules: (String, String)*): xml.Node => Boolean = {
       case n: xml.Elem if n.label == "dependency" =>
-        (n \ "groupId").head.text == groupId &&
-          (n \ "artifactId").head.text == artifactId
+        rules.contains(
+          (n \ "groupId").head.text ->
+            (n \ "artifactId").head.text
+        )
       case _ => false
     }
   }

@@ -3,7 +3,7 @@ lazy val sbtShade = (project in file("."))
   .settings(
     organization := "com.sandinh",
     name := "sbt-shade",
-    version := "0.1.2",
+    version := "0.1.3",
     scalacOptions := Seq("-deprecation", "-Xfuture"),
     addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.10"),
     crossScalaVersions := Seq("2.12.10", "2.10.7"),
@@ -11,7 +11,7 @@ lazy val sbtShade = (project in file("."))
     pluginCrossBuild / sbtVersion := {
       scalaBinaryVersion.value match {
         case "2.10" => "0.13.18"
-        case "2.12" => "1.3.7"
+        case "2.12" => "1.3.8"
       }
     },
     Compile / doc / sources := Nil,
@@ -34,7 +34,7 @@ val publishInfoSettings = Seq(
 
 val sandinh = url("https://sandinh.com")
 
-val infoSettings = Seq(
+val infoSettings = publishInfoSettings ++ Seq(
   description := "Resource transformers for sbt-assembly plugin",
   organizationName := "Sân Đình",
   organizationHomepage := Some(sandinh),

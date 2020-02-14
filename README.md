@@ -126,6 +126,7 @@ lazy val `scala-client` = project
   )
   .dependsOn(`core-io`, `scala-implicits`)
   .removePomDependsOn(`scala-implicits`)
+  .removePomDependsOn(scalaJava8Compat)
 ```
 *Note the use of* `enableAssemblyPublish` and `removePomDependsOn` which is defined in [ShadePluginUtils.ShadeProjectOps](src/main/scala/sbtassembly/shadeplugin/ShadePluginUtils.scala)
 
@@ -141,10 +142,14 @@ project.settings(
 ## dev guide
 + clone
 + using IntelliJ
-+ Set IntelliJ using scalafmt code formater
++ Set IntelliJ using scalafmt code formatter
 + sbt
 ```sbt
 +scripted
 ```
 + publish:
 https://www.scala-sbt.org/1.x/docs/Bintray-For-Plugins.html
+
+## changelog
+#### 0.1.3
++ Add `Project.removePomDependsOn(moduleIDs: ModuleID*)`
